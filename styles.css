@@ -32,4 +32,9 @@ header{
     background-color: white;
     font-size: var(--font-size); 
 }
-
+.reset{
+    display: flex;
+    padding: 1rem 1rem;
+    margin: auto;
+    justify-content: center;
+}

@@ -1,6 +1,6 @@
 const gameBoard = (()=>{
+    const board = document.getElementById('game-board');
     const createBoard = () =>{
-    let board = document.getElementById('game-board');
     for (let i=0; i < 9;i++){
         let newDiv = document.createElement('div');
         newDiv.classList.add('cell');
@@ -13,8 +13,15 @@ const gameBoard = (()=>{
             cell.textContent = '';
         });
     }
+    document.getElementById('game-restart').addEventListener('click', clearBoard);
     return {createBoard, clearBoard};
 })();
-
 gameBoard.createBoard();
-gameBoard.clearBoard();
+
+const playGame = (()=>{
+    document.getElementById('game-board').addEventListener('click', (e)=>{
+        e.target.textContent = 'O';
+    });
+    
+})();
+
