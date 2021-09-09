@@ -1,7 +1,7 @@
 *{
     box-sizing: border-box;
 }
-html {
+html{
     font-size: 100%;
 }
 header{
@@ -11,6 +11,7 @@ header{
     --board-width: 80vw;
     --board-height: 80vw;
     --board-gap: 0.1rem;
+    --font-size: 5rem;
 }
 .board{
     margin: auto;
@@ -25,6 +26,10 @@ header{
     column-gap: var(--board-gap);
 }
 .cell{
+    display: flex;
+    justify-content: center;
+    align-items: center;
     background-color: white;
+    font-size: var(--font-size); 
 }
 
