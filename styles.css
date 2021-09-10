@@ -34,7 +34,8 @@ header{
 }
 .reset{
     display: flex;
+    justify-content: space-evenly;
     padding: 1rem 1rem;
     margin: auto;
-    justify-content: center;
+    
 }
