@@ -1,28 +1,25 @@
 const player = (name, mark)=>{
     const ai = false;
-    return {name, mark,ai}
+    const win = false;
+    return {name, mark,ai,win}
 };
 
 const options = (()=>{
-    const gameOptions = document.getElementById('game-options');
     const gameDefault = document.getElementById('game-default');
     const gameClear = document.getElementById('game-restart');
     const gamePlayers = document.getElementById('game-players');
-    gameClear.disabled = true;
-    let playerOne = player('John Doe','0');
+    let playerOne = player('John Doe','O');
     let playerTwo = player('Foo Bar','X');
-    gameOptions.addEventListener('click', (e)=>{
-        if (e.target.nodeName !== 'BUTTON') return;
-        if (e.target === gameDefault){
-            gameClear.disabled = false;
-            playerTwo.ai = true;
-            console.log(players);
-        }else if(e.target === gamePlayers){
-            playerOne.name = prompt('Enter player one\'s name', 'John Doe');
-            playerTwo.name = prompt('Enter player two\'s name','Jane Doe');
-            console.log(players);
-        }
-        if (e.target === gameClear) gameBoard.clearBoard();
+    gameDefault.addEventListener('click', ()=>{
+        playerTwo.ai = true;
+        playerTwo.name = 'Foo Bar';
+    });        
+    gamePlayers.addEventListener('click', ()=>{
+        playerOne.name = prompt('Enter player one\'s name', 'John Doe');
+        playerTwo.name = prompt('Enter player two\'s name','Jane Doe');    
+    });
+    gameClear.addEventListener('click', ()=>{
+        gameBoard.clearBoard();
     });
     let players = [playerOne,playerTwo];
     return {players}
@@ -48,7 +45,6 @@ const gameBoard = (()=>{
             cell.textContent = '';
         });
     }
-
     return {board, boardCells, boardArray, clearBoard};
 })();
 
