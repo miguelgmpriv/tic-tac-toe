@@ -49,16 +49,18 @@ const checkWin = (()=>{
 
 const playGame = (()=>{
     let playerTurn = true; //player one start
+    const playerOne = options.playerOne;
+    const playerTwo = options.playerTwo;
+    const markTest = [playerOne.mark, playerTwo.mark];
     const board = gameBoard.board;
     const markBoard = (event)=>{
-        if (event.textContent === '') return;
-        
+        const markCell = event.target
+        if ((markTest.includes(markCell.textContent))) return;
         if (playerTurn){
-            console.log(options.playerOne.mark);
-            event.target.textContent = options.playerOne.mark;
+            markCell.textContent = playerOne.mark;
             playerTurn = false;
-        } else {
-            event.target.textContent = options.playerTwo.mark;
+        } else if (!playerTurn){
+            markCell.textContent = playerTwo.mark;
             playerTurn = true;
         }
     };  
