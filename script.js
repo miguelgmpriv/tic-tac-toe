@@ -57,11 +57,13 @@ const playGame = (()=>{
         if (playerTurn){
             markCell.textContent = playerOne.mark;
             playerTurn = false;
+            return gameWin.checkWin(playerOne)
         } else if (!playerTurn){
             markCell.textContent = playerTwo.mark;
             playerTurn = true;
+            return gameWin.checkWin(playerTwo);
         }
-        return gameWin.checkWin()
+        
     };  
     board.addEventListener('click', markBoard);
 })();
@@ -70,29 +72,34 @@ const gameWin = (()=>{
     const matrix = (arr, size) =>
         arr.reduce((rows, key, index) => (index % size == 0 ? rows.push([key]) 
             : rows[rows.length-1].push(key)) && rows, []); 
-    const checkWin = () =>{
+    const check = (arr, step, counter, player, direction) =>{
+
+        if (counter === step) return
+
+        check(arr, step, counter+1, player, direction);
+
+        if (direction === 'row'){
+        for (let i = 0; i < step-1; i++){
+            if (arr[counter][i].textContent === '') continue;
+            if (arr[counter][i].textContent !== arr[counter][i+1].textContent) continue;
+            if (i === step-2 &&
+                arr[counter][i].textContent === arr[counter][0].textContent) player.win = true;
+        }
+        } else if (direction === 'column'){
+            for (let i = 0; i < step-1; i++){
+                if (arr[i][counter].textContent === '') continue;
+                if (arr[i][counter].textContent !== arr[i+1][counter].textContent) continue;
+                if (i === step-2 &&
+                    arr[i][counter].textContent === arr[0][counter].textContent) player.win = true;
+            }
+        }
+    };
+
+    const checkWin = (player) =>{
         const testArray = matrix(gameBoard.boardArray, gameBoard.gridSize);
-        console.log(testArray);
-        let win = false;
-        for (let i = 0; i < gameBoard.gridSize; i++){
-            let won = true;
-            for (let x = 0; x < (gameBoard.gridSize - 1); x++){
-                if (row[i][x].textContent === '' || won === false){
-                    won = false;
-                    break;
-                }
-                if (row[i][x].textContent !== row[i][x+1].textContent){
-                    won = false;
-                }
-            }
-            if (won === true){
-                win = true;
-                break;
-            }
-        }
-        if (win === true){
-            console.log('you won');
-        }
+        check(testArray, gameBoard.gridSize, 0, player,'row');
+        check(testArray, gameBoard.gridSize, 0, player, 'column');
+        console.log(player);   
     }
     return {checkWin}
 })();
