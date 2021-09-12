@@ -131,6 +131,44 @@ const gameWin = (()=>{
     const _matrix = (arr, size) =>
         arr.reduce((rows, key, index) => (index % size == 0 ? rows.push([key]) 
             : rows[rows.length-1].push(key)) && rows, []); 
+    const _check = (arr, step, counter, player, direction)=>{
+
+        if (counter === step) return
+        _check(arr, step, counter+1, player, direction);
+
+        let testO = new RegExp(`O{${step}}`);
+        let testX = new RegExp(`X{${step}}`);
+        let testArray = [];
+        if (direction === 'row'){
+            testArray = arr.slice((counter*step),((counter+1)*step)).join('');
+            if (testO.test(testArray) || testX.test(testArray)) return player.win = true;
+        }
+        if (direction === 'column'){
+            testArray = arr.reduce((first, next, index, arr)=>{
+                if (index  % step === 0) first.push(arr[index+counter]);
+                return first
+            },[]).join('');
+            if (testO.test(testArray) || testX.test(testArray)) return player.win = true;
+        }
+        if (direction === 'diagonal'){
+            let diag = [];
+            let diagReverse = [];
+            for (let i = 0, x = step + 1; i <= arr.length; i = i + x){
+                diag.push(arr[i]);
+            }
+            diag = diag.join('');
+            for (let i = step-1, x = (arr.length-step); x >= i;  x = x - i){
+                diagReverse.push(arr[x]);
+            }
+            diagReverse = diagReverse.join('');
+            if (testO.test(diag) || testX.test(diag)
+                || testO.test(diagReverse) || testX.test(diagReverse)) return player.win = true;
+        }
+    };
+
+
+
+/* 
     const _check = (arr, step, counter, player, direction) =>{
 
         if (counter === step) return
@@ -139,15 +177,15 @@ const gameWin = (()=>{
 
         if (direction === 'row'){
             for (let i = 0; i < step-1; i++){
-            if (arr[counter][i].textContent === '') continue;
-            if (arr[counter][i].textContent !== arr[counter][i+1].textContent) continue;
+            if (arr[counter][i].textContent === '') break;
+            if (arr[counter][i].textContent !== arr[counter][i+1].textContent) break;
             if (i === step-2 &&
                 arr[counter][i].textContent === arr[counter][0].textContent) player.win = true;
         }
         } else if (direction === 'column'){
             for (let i = 0; i < step-1; i++){
-                if (arr[i][counter].textContent === '') continue;
-                if (arr[i][counter].textContent !== arr[i+1][counter].textContent) continue;
+                if (arr[i][counter].textContent === '') break;
+                if (arr[i][counter].textContent !== arr[i+1][counter].textContent) break;
                 if (i === step-2 &&
                     arr[i][counter].textContent === arr[0][counter].textContent) player.win = true;
             }
@@ -165,15 +203,20 @@ const gameWin = (()=>{
                     arr[i-1][x+1].textContent === arr[step-1][0].textContent) player.win = true;
             }
         }
-    }
+    } */
     const checkWin = (player) =>{
         const originalArray = gameBoard.boardArray();
-        const size = gameBoard.gridSize();
-        const testArray = _matrix(originalArray, size);
-        const step = testArray.length;
+        let testArray = []
+
+        originalArray.forEach((value)=>{
+            testArray.push(value.textContent);
+        });
+        //const testArray = _matrix(originalArray, size);
+        const step = Number(gameBoard.gridSize());
         _check(testArray, step, 0, player,'row');
         _check(testArray, step, 0, player, 'column');
         _check(testArray, step, 0, player, 'diagonal');
+        console.log(player);
         return (player.win) 
     }
     return {checkWin}
