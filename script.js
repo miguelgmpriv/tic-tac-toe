@@ -61,6 +61,18 @@ const playGame = (()=>{
     const playerTwo = options.playerTwo;
     const markTest = [playerOne.mark, playerTwo.mark];
     const board = gameBoard.board;
+    const _target = (max)=>{return Math.floor(Math.random() * max)}
+    const _aiMoves = ()=>{
+        const currentGrid = gameBoard.boardArray();
+        while(true){
+            const aiMove = _target(currentGrid.length);
+            if (currentGrid[aiMove].textContent === ''){
+                currentGrid[aiMove].textContent = playerTwo.mark;
+                break;
+            }
+        }
+        return gameWin.checkWin(playerTwo);
+    };
     const markBoard = (event)=>{
         const markCell = event.target
         if ((markTest.includes(markCell.textContent))) return;
@@ -89,7 +101,7 @@ const gameWin = (()=>{
         _check(arr, step, counter+1, player, direction);
 
         if (direction === 'row'){
-        for (let i = 0; i < step-1; i++){
+            for (let i = 0; i < step-1; i++){
             if (arr[counter][i].textContent === '') continue;
             if (arr[counter][i].textContent !== arr[counter][i+1].textContent) continue;
             if (i === step-2 &&
