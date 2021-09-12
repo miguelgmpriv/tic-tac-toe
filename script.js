@@ -1,7 +1,8 @@
 const player = (name, mark)=>{
     const ai = false;
     const win = false;
-    return {name, mark, ai, win}
+    const active = false;
+    return {name, mark, ai, win, active}
 };
 
 const options = (()=>{
@@ -11,56 +12,82 @@ const options = (()=>{
     const gameSize = document.getElementById('game-size');
     const playerOne = player('John Doe','O');
     const playerTwo = player('Foo Bar','X');
+    const _restart = ()=>{
+        const board = gameBoard.board();
+        playerOne.win = false;
+        playerOne.active = true;
+        playerTwo.win = false;
+        gameBoard.clearBoard();
+        board.addEventListener('click', playGame.markBoard);
+    };
     gameDefault.addEventListener('click', ()=>{
         playerTwo.ai = true;
         playerTwo.name = 'Foo Bar';
-        gameBoard.clearBoard();
+        _restart();
     });        
     gamePlayers.addEventListener('click', ()=>{
         playerOne.name = prompt('Enter player one\'s name', 'John Doe');
         playerTwo.name = prompt('Enter player two\'s name','Jane Doe');
-        gameBoard.clearBoard();
+        _restart();
     });
-    gameClear.addEventListener('click', ()=>{gameBoard.clearBoard()});
-    gameSize.addEventListener('change', (event)=>{gameBoard.createBoard(event.target.value);});
+    gameClear.addEventListener('click', _restart);
+    gameSize.addEventListener('change', (event)=>{
+        gameBoard.createBoard(event.target.value);
+        _restart();
+    });
     return {playerOne, playerTwo}
 })();
 
+const display = (()=>{
+    const gameDisplay = document.getElementById('game-display');
+    const playerOne = options.playerOne;
+    const playerTwo = options.playerTwo;
+    const currentPlayer = (player)=>{
+        gameDisplay.textContent = `${player.name}'s turn!`;
+    };
+    const displayWinner = (player)=>{
+        gameDisplay.textContent = `${player.name} won!`;
+        const board = gameBoard.board();
+        board.removeEventListener('click', playGame.markBoard);
+    };
+    return{currentPlayer, displayWinner};
+})();
+
 const gameBoard = (()=>{
-    const board = document.getElementById('game-board');
+    const board = ()=>{return document.getElementById('game-board')};
+    const currentBoard = board();
     const cell = 'cell'; //Use class name as name for dataset
     const root = document.querySelector(':root');
     const gridSize = ()=>{return getComputedStyle(root).getPropertyValue('--grid-size')}
+    const defaultSize = gridSize();
     const boardArray = ()=>{return Array.from(document.querySelectorAll(`[data-${cell}]`))};
     const createBoard = (size)=>{
         root.style.setProperty('--grid-size', size);
-        while(board.firstChild){
-            board.removeChild(board.firstChild);
+        while(currentBoard.firstChild){
+            currentBoard.removeChild(currentBoard.firstChild);
         }
         for (let i = 0; i < (size*size);i++){
             let newDiv = document.createElement('div');
             newDiv.classList.add(cell);
             newDiv.dataset[cell] = i;
-            board.appendChild(newDiv);   
+            currentBoard.appendChild(newDiv);   
         };
         clearBoard();
     };  
     const clearBoard = ()=>{
         const currentArray = boardArray();
         currentArray.forEach(cell => {cell.textContent = ''});
-        options.playerOne.win = false;
-        options.playerTwo.win = false;
+        display.currentPlayer(options.playerOne);
     };
-    createBoard(3);
+    createBoard(defaultSize);
     return {board, boardArray, clearBoard, createBoard, gridSize};
 })();
 
 const playGame = (()=>{
-    let playerTurn = true; //player one start
     const playerOne = options.playerOne;
     const playerTwo = options.playerTwo;
     const markTest = [playerOne.mark, playerTwo.mark];
-    const board = gameBoard.board;
+    const board = gameBoard.board();
     const _target = (max)=>{return Math.floor(Math.random() * max)}
     const _aiMoves = ()=>{
         const currentGrid = gameBoard.boardArray();
@@ -73,21 +100,31 @@ const playGame = (()=>{
         }
         return gameWin.checkWin(playerTwo);
     };
+/*     const _vsAi = (event)=>{
+        event.target.textContent = playerOne.mark;
+        board.removeEventListener('click', markBoard);
+
+        //setTimeout();
+
+    } */
     const markBoard = (event)=>{
         const markCell = event.target
         if ((markTest.includes(markCell.textContent))) return;
-        if (playerTurn){
+        if (playerTwo.ai) _vsAi(event);
+        if (playerOne.active){
             markCell.textContent = playerOne.mark;
-            playerTurn = false;
-            return gameWin.checkWin(playerOne)
-        } else if (!playerTurn){
+            playerOne.active = false;
+            playerTwo.active = true;
+            return (gameWin.checkWin(playerOne)) ? display.displayWinner(playerOne) : display.currentPlayer(playerTwo)
+        } else if (playerTwo.active){
             markCell.textContent = playerTwo.mark;
-            playerTurn = true;
-            return gameWin.checkWin(playerTwo);
-        }
-        
+            playerTwo.active = false;
+            playerOne.active = true;
+            return (gameWin.checkWin(playerTwo)) ? display.displayWinner(playerTwo) : display.currentPlayer(playerOne)
+        }    
     };  
     board.addEventListener('click', markBoard);
+    return{markBoard}
 })();
 
 const gameWin = (()=>{
@@ -137,7 +174,7 @@ const gameWin = (()=>{
         _check(testArray, step, 0, player,'row');
         _check(testArray, step, 0, player, 'column');
         _check(testArray, step, 0, player, 'diagonal');
-        console.log(player);   
+        return (player.win) 
     }
     return {checkWin}
 })();
