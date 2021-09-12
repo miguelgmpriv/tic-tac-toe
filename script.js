@@ -43,8 +43,6 @@ const gameBoard = (()=>{
     return {board, boardArray, gridSize, clearBoard};
 })();
 
-
-
 const playGame = (()=>{
     let playerTurn = true; //player one start
     const playerOne = options.playerOne;
@@ -69,14 +67,14 @@ const playGame = (()=>{
 })();
 
 const gameWin = (()=>{
-    const matrix = (arr, size) =>
+    const _matrix = (arr, size) =>
         arr.reduce((rows, key, index) => (index % size == 0 ? rows.push([key]) 
             : rows[rows.length-1].push(key)) && rows, []); 
-    const check = (arr, step, counter, player, direction) =>{
+    const _check = (arr, step, counter, player, direction) =>{
 
         if (counter === step) return
 
-        check(arr, step, counter+1, player, direction);
+        _check(arr, step, counter+1, player, direction);
 
         if (direction === 'row'){
         for (let i = 0; i < step-1; i++){
@@ -92,13 +90,27 @@ const gameWin = (()=>{
                 if (i === step-2 &&
                     arr[i][counter].textContent === arr[0][counter].textContent) player.win = true;
             }
+        } else if (direction === 'diagonal'){
+            for (let i = 0; i < step-1; i++){
+                if (arr[i][i].textContent === '') continue;
+                if (arr[i][i].textContent !== arr[i+1][i+1].textContent) continue;
+                if (i === step-2 &&
+                    arr[i][i].textContent === arr[0][0].textContent) player.win = true;
+            }
+            for (let i = step-1, x = 0; i >= 1; i--, x++){
+                if (arr[i][x].textContent === '') continue;
+                if (arr[i][x].textContent !== arr[i-1][x+1].textContent) continue;
+                if (i === 1 &&
+                    arr[i-1][x+1].textContent === arr[step-1][0].textContent) player.win = true;
+            }
         }
-    };
-
+    }
     const checkWin = (player) =>{
-        const testArray = matrix(gameBoard.boardArray, gameBoard.gridSize);
-        check(testArray, gameBoard.gridSize, 0, player,'row');
-        check(testArray, gameBoard.gridSize, 0, player, 'column');
+        const testArray = _matrix(gameBoard.boardArray, gameBoard.gridSize);
+        const step = testArray.length;
+        _check(testArray, step, 0, player,'row');
+        _check(testArray, step, 0, player, 'column');
+        _check(testArray, step, 0, player, 'diagonal');
         console.log(player);   
     }
     return {checkWin}
