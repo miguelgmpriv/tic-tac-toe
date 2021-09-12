@@ -12,6 +12,7 @@ header{
     --board-height: 80vw;
     --board-gap: 0.1rem;
     --font-size: 5rem;
+    --grid-size: 3;
 }
 .board{
     margin: auto;
@@ -20,8 +21,8 @@ header{
     display: grid;
     width: var(--board-width);
     height: var(--board-height);
-    grid-template-rows: repeat(3, 1fr);
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(var(--grid-size), 1fr);
+    grid-template-columns: repeat(var(--grid-size), 1fr);
     row-gap: var(--board-gap);
     column-gap: var(--board-gap);
 }

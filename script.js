@@ -8,39 +8,51 @@ const options = (()=>{
     const gameDefault = document.getElementById('game-default');
     const gameClear = document.getElementById('game-restart');
     const gamePlayers = document.getElementById('game-players');
-    let playerOne = player('John Doe','O');
-    let playerTwo = player('Foo Bar','X');
+    const gameSize = document.getElementById('game-size');
+    const playerOne = player('John Doe','O');
+    const playerTwo = player('Foo Bar','X');
     gameDefault.addEventListener('click', ()=>{
         playerTwo.ai = true;
         playerTwo.name = 'Foo Bar';
+        gameBoard.clearBoard();
     });        
     gamePlayers.addEventListener('click', ()=>{
         playerOne.name = prompt('Enter player one\'s name', 'John Doe');
         playerTwo.name = prompt('Enter player two\'s name','Jane Doe');
-    });
-    gameClear.addEventListener('click', ()=>{
         gameBoard.clearBoard();
     });
+    gameClear.addEventListener('click', ()=>{gameBoard.clearBoard()});
+    gameSize.addEventListener('change', (event)=>{gameBoard.createBoard(event.target.value);});
     return {playerOne, playerTwo}
 })();
 
 const gameBoard = (()=>{
     const board = document.getElementById('game-board');
-    const gridSize = 3;
     const cell = 'cell'; //Use class name as name for dataset
-    for (let i = 0; i < (gridSize*gridSize);i++){
-        let newDiv = document.createElement('div');
-        newDiv.classList.add(cell);
-        newDiv.dataset[cell] = i;
-        board.appendChild(newDiv);   
-    };
-    const boardArray = Array.from(document.querySelectorAll(`[data-${cell}]`));
+    const root = document.querySelector(':root');
+    const gridSize = ()=>{return getComputedStyle(root).getPropertyValue('--grid-size')}
+    const boardArray = ()=>{return Array.from(document.querySelectorAll(`[data-${cell}]`))};
+    const createBoard = (size)=>{
+        root.style.setProperty('--grid-size', size);
+        while(board.firstChild){
+            board.removeChild(board.firstChild);
+        }
+        for (let i = 0; i < (size*size);i++){
+            let newDiv = document.createElement('div');
+            newDiv.classList.add(cell);
+            newDiv.dataset[cell] = i;
+            board.appendChild(newDiv);   
+        };
+        clearBoard();
+    };  
     const clearBoard = ()=>{
-        boardArray.forEach(cell => {
-            cell.textContent = '';
-        });
-    }
-    return {board, boardArray, gridSize, clearBoard};
+        const currentArray = boardArray();
+        currentArray.forEach(cell => {cell.textContent = ''});
+        options.playerOne.win = false;
+        options.playerTwo.win = false;
+    };
+    createBoard(3);
+    return {board, boardArray, clearBoard, createBoard, gridSize};
 })();
 
 const playGame = (()=>{
@@ -106,7 +118,9 @@ const gameWin = (()=>{
         }
     }
     const checkWin = (player) =>{
-        const testArray = _matrix(gameBoard.boardArray, gameBoard.gridSize);
+        const originalArray = gameBoard.boardArray();
+        const size = gameBoard.gridSize();
+        const testArray = _matrix(originalArray, size);
         const step = testArray.length;
         _check(testArray, step, 0, player,'row');
         _check(testArray, step, 0, player, 'column');
