@@ -13,7 +13,7 @@ const options = (()=>{
     const gameSize = document.getElementById('game-size');
     const playerOne = player('John Doe','O');
     const playerTwo = player('Foo Bar','X');
-
+    playerTwo.ai = true;
     const _restart = ()=>{
         const board = gameBoard.board();
         playerOne.win = false;
@@ -30,6 +30,7 @@ const options = (()=>{
     gamePlayers.addEventListener('click', ()=>{
         playerOne.name = prompt('Enter player one\'s name', 'John Doe');
         playerTwo.name = prompt('Enter player two\'s name','Jane Doe');
+        playerTwo.ai = false;
         _restart();
     });
     gameClear.addEventListener('click', _restart);
@@ -48,6 +49,7 @@ const display = (()=>{
     const gameDisplay = document.getElementById('game-display');
 
     const currentPlayer = (player)=>{
+        if (playGame.checkBoard() === false) return displayTie();
         gameDisplay.textContent = `${player.name}'s turn!`;
     };
     const displayWinner = (player)=>{
@@ -56,6 +58,7 @@ const display = (()=>{
         board.removeEventListener('click', playGame.markBoard);
     };
     const displayTie = ()=>{
+        const board = gameBoard.board();
         gameDisplay.textContent = `It's a tie! Click new game to try again`;
         board.removeEventListener('click', playGame.markBoard);
     };
@@ -89,7 +92,8 @@ const gameBoard = (()=>{
             newDiv.dataset[cell] = i;
             currentBoard.appendChild(newDiv);   
         };
-        clearBoard();
+        const currentArray = boardArray();
+        currentArray.forEach(cell => {cell.textContent = ''});
     };  
     const clearBoard = ()=>{
         const currentArray = boardArray();
@@ -113,7 +117,7 @@ const playGame = (()=>{
     const board = gameBoard.board();
 
     const _target = (max)=>{return Math.floor(Math.random() * max)}
-    const _checkBoard = () =>{
+    const checkBoard = () =>{
         const currentBoard = gameBoard.boardArray();
         for (div = 0; div < currentBoard.length; div++){
             if (currentBoard[div].textContent === '') return true
@@ -123,7 +127,7 @@ const playGame = (()=>{
     const _aiMoves = ()=>{
         //Checks the board and if it has space it will loop until a valid move is available
         const currentGrid = gameBoard.boardArray();
-        if (_checkBoard()){
+        if (checkBoard()){
             while(true){
                 const aiMove = _target(currentGrid.length);
                 if (currentGrid[aiMove].textContent === ''){
@@ -138,6 +142,8 @@ const playGame = (()=>{
     const _vsAi = (event)=>{
         //Mark the players mark on the grid and then follow with the AI logic
         event.target.textContent = playerOne.mark;
+        if (gameWin.checkWin(playerOne)) return display.displayWinner(playerOne);
+        if (!checkBoard()) return display.displayTie();
         board.removeEventListener('click', markBoard);
         if (_aiMoves()){
             return display.displayWinner(playerTwo);
@@ -147,7 +153,8 @@ const playGame = (()=>{
     const markBoard = (event)=>{
         //Check for legal moves and then follow depending on AI or human player
         const markCell = event.target
-        if ((markTest.includes(markCell.textContent))) return;
+        const board = gameBoard.board();
+        if ((markTest.includes(markCell.textContent)||(markCell === board))) return;
         if (playerTwo.ai) return _vsAi(event);
         if (playerOne.active){
             markCell.textContent = playerOne.mark;
@@ -163,7 +170,8 @@ const playGame = (()=>{
     };  
     board.addEventListener('click', markBoard);
     return{
-        markBoard
+        markBoard,
+        checkBoard
     }
 })();
 
@@ -218,7 +226,6 @@ const gameWin = (()=>{
         _check(testArray, size, 0, player,'row');
         _check(testArray, size, 0, player, 'column');
         _check(testArray, size, 0, player, 'diagonal');
-        console.log(player);
         return (player.win) 
     }
     return {

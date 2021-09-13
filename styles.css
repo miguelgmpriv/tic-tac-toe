@@ -11,7 +11,7 @@ header{
     --board-width: 80vw;
     --board-height: 80vw;
     --board-gap: 0.1rem;
-    --font-size: 5rem;
+    --font-size: 2rem;
     --grid-size: 3;
 }
 .board{
@@ -20,7 +20,9 @@ header{
     background-color: black;
     display: grid;
     width: var(--board-width);
+    max-width: 300px;
     height: var(--board-height);
+    max-height: 300px;
     grid-template-rows: repeat(var(--grid-size), 1fr);
     grid-template-columns: repeat(var(--grid-size), 1fr);
     row-gap: var(--board-gap);
@@ -35,8 +37,15 @@ header{
 }
 .reset{
     display: flex;
-    justify-content: space-evenly;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
     padding: 1rem 1rem;
     margin: auto;
-    
+}
+.button{
+    margin: 0.25rem;
+    width: 7rem;
+    height: 3rem;
+
 }
