@@ -6,12 +6,14 @@ const player = (name, mark)=>{
 };
 
 const options = (()=>{
+    //Grid size and button controls here
     const gameDefault = document.getElementById('game-default');
     const gameClear = document.getElementById('game-restart');
     const gamePlayers = document.getElementById('game-players');
     const gameSize = document.getElementById('game-size');
     const playerOne = player('John Doe','O');
     const playerTwo = player('Foo Bar','X');
+
     const _restart = ()=>{
         const board = gameBoard.board();
         playerOne.win = false;
@@ -35,32 +37,47 @@ const options = (()=>{
         gameBoard.createBoard(event.target.value);
         _restart();
     });
-    return {playerOne, playerTwo}
+    return {
+        playerOne, 
+        playerTwo
+    }
 })();
 
 const display = (()=>{
+    //Display controller here. Event listener turned off once a tie or win is reached
     const gameDisplay = document.getElementById('game-display');
-    const playerOne = options.playerOne;
-    const playerTwo = options.playerTwo;
+
     const currentPlayer = (player)=>{
         gameDisplay.textContent = `${player.name}'s turn!`;
     };
     const displayWinner = (player)=>{
-        gameDisplay.textContent = `${player.name} won!`;
+        gameDisplay.textContent = `${player.name} won! Click new game to try again`;
         const board = gameBoard.board();
         board.removeEventListener('click', playGame.markBoard);
     };
-    return{currentPlayer, displayWinner};
+    const displayTie = ()=>{
+        gameDisplay.textContent = `It's a tie! Click new game to try again`;
+        board.removeEventListener('click', playGame.markBoard);
+    };
+    return{ 
+        currentPlayer, 
+        displayWinner,
+        displayTie,
+    };
 })();
 
 const gameBoard = (()=>{
-    const board = ()=>{return document.getElementById('game-board')};
-    const currentBoard = board();
-    const cell = 'cell'; //Use class name as name for dataset
+    //Create the board and other board related functions
+    //Chose to set up public functions to get the grid size and board just so only need to change here
+    //if class name or variable change.
     const root = document.querySelector(':root');
+    const board = ()=>{return document.getElementById('game-board')};
     const gridSize = ()=>{return getComputedStyle(root).getPropertyValue('--grid-size')}
-    const defaultSize = gridSize();
     const boardArray = ()=>{return Array.from(document.querySelectorAll(`[data-${cell}]`))};
+    const currentBoard = board();
+    const defaultSize = gridSize();
+    const cell = 'cell'; 
+
     const createBoard = (size)=>{
         root.style.setProperty('--grid-size', size);
         while(currentBoard.firstChild){
@@ -80,37 +97,58 @@ const gameBoard = (()=>{
         display.currentPlayer(options.playerOne);
     };
     createBoard(defaultSize);
-    return {board, boardArray, clearBoard, createBoard, gridSize};
+    return {
+        board, 
+        boardArray, 
+        clearBoard, 
+        createBoard, 
+        gridSize};
 })();
 
 const playGame = (()=>{
+    //Controls flow of the game. The private functions mostly have to do with the AI
     const playerOne = options.playerOne;
     const playerTwo = options.playerTwo;
     const markTest = [playerOne.mark, playerTwo.mark];
     const board = gameBoard.board();
+
     const _target = (max)=>{return Math.floor(Math.random() * max)}
-    const _aiMoves = ()=>{
-        const currentGrid = gameBoard.boardArray();
-        while(true){
-            const aiMove = _target(currentGrid.length);
-            if (currentGrid[aiMove].textContent === ''){
-                currentGrid[aiMove].textContent = playerTwo.mark;
-                break;
-            }
+    const _checkBoard = () =>{
+        const currentBoard = gameBoard.boardArray();
+        for (div = 0; div < currentBoard.length; div++){
+            if (currentBoard[div].textContent === '') return true
         }
-        return gameWin.checkWin(playerTwo);
+        return false;
     };
-/*     const _vsAi = (event)=>{
+    const _aiMoves = ()=>{
+        //Checks the board and if it has space it will loop until a valid move is available
+        const currentGrid = gameBoard.boardArray();
+        if (_checkBoard()){
+            while(true){
+                const aiMove = _target(currentGrid.length);
+                if (currentGrid[aiMove].textContent === ''){
+                    currentGrid[aiMove].textContent = playerTwo.mark;
+                    break;
+                }
+            }
+        return gameWin.checkWin(playerTwo);
+        }
+        return false
+    };
+    const _vsAi = (event)=>{
+        //Mark the players mark on the grid and then follow with the AI logic
         event.target.textContent = playerOne.mark;
         board.removeEventListener('click', markBoard);
-
-        //setTimeout();
-
-    } */
+        if (_aiMoves()){
+            return display.displayWinner(playerTwo);
+        } 
+        board.addEventListener('click', markBoard);
+    }
     const markBoard = (event)=>{
+        //Check for legal moves and then follow depending on AI or human player
         const markCell = event.target
         if ((markTest.includes(markCell.textContent))) return;
-        if (playerTwo.ai) _vsAi(event);
+        if (playerTwo.ai) return _vsAi(event);
         if (playerOne.active){
             markCell.textContent = playerOne.mark;
             playerOne.active = false;
@@ -124,13 +162,16 @@ const playGame = (()=>{
         }    
     };  
     board.addEventListener('click', markBoard);
-    return{markBoard}
+    return{
+        markBoard
+    }
 })();
 
 const gameWin = (()=>{
-    const _matrix = (arr, size) =>
-        arr.reduce((rows, key, index) => (index % size == 0 ? rows.push([key]) 
-            : rows[rows.length-1].push(key)) && rows, []); 
+    //Win checking is done by running a recursive function and a combination of 
+    //slice/reduce/push/join array manipulation to get the arrays on a row based on grid size.
+    //Once they are in a row and returned as a string _check will compare with the regex to see if
+    //any truthy conditions are met and update player.win
     const _check = (arr, step, counter, player, direction)=>{
 
         if (counter === step) return
@@ -139,6 +180,7 @@ const gameWin = (()=>{
         let testO = new RegExp(`O{${step}}`);
         let testX = new RegExp(`X{${step}}`);
         let testArray = [];
+
         if (direction === 'row'){
             testArray = arr.slice((counter*step),((counter+1)*step)).join('');
             if (testO.test(testArray) || testX.test(testArray)) return player.win = true;
@@ -165,59 +207,21 @@ const gameWin = (()=>{
                 || testO.test(diagReverse) || testX.test(diagReverse)) return player.win = true;
         }
     };
-
-
-
-/* 
-    const _check = (arr, step, counter, player, direction) =>{
-
-        if (counter === step) return
-
-        _check(arr, step, counter+1, player, direction);
-
-        if (direction === 'row'){
-            for (let i = 0; i < step-1; i++){
-            if (arr[counter][i].textContent === '') break;
-            if (arr[counter][i].textContent !== arr[counter][i+1].textContent) break;
-            if (i === step-2 &&
-                arr[counter][i].textContent === arr[counter][0].textContent) player.win = true;
-        }
-        } else if (direction === 'column'){
-            for (let i = 0; i < step-1; i++){
-                if (arr[i][counter].textContent === '') break;
-                if (arr[i][counter].textContent !== arr[i+1][counter].textContent) break;
-                if (i === step-2 &&
-                    arr[i][counter].textContent === arr[0][counter].textContent) player.win = true;
-            }
-        } else if (direction === 'diagonal'){
-            for (let i = 0; i < step-1; i++){
-                if (arr[i][i].textContent === '') continue;
-                if (arr[i][i].textContent !== arr[i+1][i+1].textContent) continue;
-                if (i === step-2 &&
-                    arr[i][i].textContent === arr[0][0].textContent) player.win = true;
-            }
-            for (let i = step-1, x = 0; i >= 1; i--, x++){
-                if (arr[i][x].textContent === '') continue;
-                if (arr[i][x].textContent !== arr[i-1][x+1].textContent) continue;
-                if (i === 1 &&
-                    arr[i-1][x+1].textContent === arr[step-1][0].textContent) player.win = true;
-            }
-        }
-    } */
     const checkWin = (player) =>{
+        //After running _check checkWin returns either true or false to continue the game
         const originalArray = gameBoard.boardArray();
+        const size = Number(gameBoard.gridSize());
         let testArray = []
-
         originalArray.forEach((value)=>{
             testArray.push(value.textContent);
         });
-        //const testArray = _matrix(originalArray, size);
-        const step = Number(gameBoard.gridSize());
-        _check(testArray, step, 0, player,'row');
-        _check(testArray, step, 0, player, 'column');
-        _check(testArray, step, 0, player, 'diagonal');
+        _check(testArray, size, 0, player,'row');
+        _check(testArray, size, 0, player, 'column');
+        _check(testArray, size, 0, player, 'diagonal');
         console.log(player);
         return (player.win) 
     }
-    return {checkWin}
+    return {
+        checkWin
+    }
 })();
